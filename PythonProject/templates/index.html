@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Application</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        input, button {
+            width: 100%;
+            margin: 8px 0;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #messages {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            height: 150px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+        }
+
+        p {
+            margin: 0;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat Application</h1>
+    <div class="container">
+        <input type="text" id="username" placeholder="Tên đăng nhập">
+        <input type="text" id="room" placeholder="Nhập tên phòng">
+        <div class="button-group">
+            <button id="join">Vào phòng</button>
+            <button id="leave">Rời phòng</button>
+        </div>
+        <div id="messages"></div>
+        <input type="text" id="message" placeholder="Nhập tin nhắn">
+        <button id="send">Gửi</button>
+    </div>
+
+    <script>
+        const socket = io();
+
+        document.getElementById('send').onclick = () => {
+            const username = document.getElementById('username').value || 'Anonymous'; // Default username
+            const message = document.getElementById('message').value;
+            const timestamp = new Date().toLocaleTimeString(); // Get current time
+            document.getElementById('message').value = ''; // Clear input after sending
+            if (message) {
+                socket.send({ username, message, timestamp });
+            }
+        };
+
+        socket.on('message', (data) => {
+            const messages = document.getElementById('messages');
+            messages.innerHTML += `<p><strong>${data.username}</strong> [${data.timestamp}]: ${data.message}</p>`;
+            messages.scrollTop = messages.scrollHeight; // Auto scroll to the bottom
+        });
+
+        document.getElementById('join').onclick = () => {
+            const username = document.getElementById('username').value || 'Anonymous';
+            const room = document.getElementById('room').value;
+            socket.emit('join', { username, room });
+        };
+
+        document.getElementById('leave').onclick = () => {
+            const username = document.getElementById('username').value || 'Anonymous';
+            const room = document.getElementById('room').value;
+            socket.emit('leave', { username, room });
+        };
+    </script>
+</body>
+</html>
